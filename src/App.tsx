@@ -2,12 +2,6 @@
 import { useState } from "react";
 import IMg from "./assets/fb.svg";
 import { supabase } from "./api";
-import * as yup from "yup";
-
-const schema = yup.object().shape({
-  email: yup.string().required("Digita email ou numero de telefone"),
-  password: yup.string().required("Digita uma senha valida"),
-});
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,8 +14,18 @@ function App() {
     e.preventDefault();
     setErrEmail(null);
     setErPass(null);
+    console.log({ email, password });
+
+    if (email.length === 0) {
+      setErrEmail("Digita email ou numero de telefone");
+      return;
+    }
+    if (password.length === 0) {
+      setErPass("Digita uma senha valida");
+      return;
+    }
+
     try {
-      await schema.validate({ email, password });
       setIsLoading(true);
       const response = await supabase
         .from("people")
@@ -35,16 +39,6 @@ function App() {
       }
     } catch (error) {
       console.log(error);
-      if (error instanceof yup.ValidationError) {
-        if (error.message.includes("email")) {
-          setErrEmail(error.message);
-          return;
-        }
-        if (error.message.includes("senha")) {
-          setErPass(error.message);
-          return;
-        }
-      }
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +68,7 @@ function App() {
             className="px-4 h-12 my-2 border border-1 border-gray-400 rounded-md focus:outline-blue-500"
             value={email}
             onChange={handleChangeIn}
+            required
           />
           {errEmail && (
             <p className="text-[12px] mx-2 text-red-500">{errEmail}</p>
