@@ -1,10 +1,12 @@
+import IMg from './assets/fb.svg'
+
 
 function App() {
   return (
     <>
       <div className="container sm:mt-16 lg:mt-48 flex flex-col mx-auto items-center justify-center flex-wrap sm:flex-row">
         <div className="left w-1/3 mx-14">
-          <img src="./assets/fb.svg" className="w-80" />
+          <img src={IMg} className="w-80" />
           <p className="text-3xl mx-8 hidden sm:block">
             Facebook helps you connect and share with the people in your life.
           </p>
